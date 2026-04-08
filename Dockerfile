@@ -5,6 +5,7 @@ WORKDIR /app
 COPY Gemfile ./
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential && \
+    bundle config set --local force_ruby_platform true && \
     bundle install --jobs 4 && \
     rm -rf /usr/local/bundle/cache/*.gem && \
     find /usr/local/bundle/gems -name "*.c" -o -name "*.o" | xargs rm -f
