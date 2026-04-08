@@ -2,7 +2,7 @@ FROM ruby:3.4-slim AS builder
 
 WORKDIR /app
 
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential && \
     bundle install --jobs 4 && \
