@@ -5,7 +5,7 @@ require "sqlite_vec"
 
 module DB
   DB_PATH = File.expand_path("../../data/ferret.db", __FILE__)
-  EMBED_DIM = 768 # all-mpnet-base-v2
+  EMBED_DIM = ENV.fetch("EMBED_DIM", "4096").to_i # qwen/qwen3-embedding-8b default
 
   def self.connection
     @db ||= begin

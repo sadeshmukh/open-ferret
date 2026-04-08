@@ -4,8 +4,8 @@ require "sinatra"
 require "json"
 require "digest"
 require "lru_redux"
-require "informers"
 require_relative "lib/db"
+require_relative "lib/embeddings"
 
 if ENV["OTEL_EXPORTER_OTLP_ENDPOINT"]
   require "opentelemetry/sdk"
@@ -31,19 +31,13 @@ set :bind, "0.0.0.0"
 set :public_folder, File.join(__dir__, "public")
 set :host_authorization, permitted_hosts: ENV["APP_HOST"] ? [ENV["APP_HOST"]] : []
 
-EMBED_MODEL = Informers.pipeline("embedding", "sentence-transformers/all-mpnet-base-v2")
-RERANKER = Informers.pipeline("reranking", "cross-encoder/ms-marco-MiniLM-L-6-v2")
-
 # RRF weights — vector search gets 2x weight over FTS
 VEC_WEIGHT = 2.0
 FTS_WEIGHT = 1.0
 RRF_K = 60.0
 
-# reranker candidate pool — retrieve this many, rerank, then take top limit
+# candidate pool for retrieval before final ordering
 RERANK_POOL = 37
-
-# minimum reranker score — below this, results are noise
-RERANK_FLOOR = 0.01
 
 # short descriptions are noisier — discount scores for descriptions under this length
 DESC_LEN_THRESHOLD = 100
@@ -183,7 +177,7 @@ get "/search.json" do
   if use_vec
     t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     embedding = TRACER.in_span("embed") do
-      EMBED_MODEL.(q)
+      Embeddings.embed(q)
     end
     timings[:embed] = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t1) * 1000).round
 
@@ -254,34 +248,15 @@ get "/search.json" do
 
   return { results: [], query: q, ysws_names: [] }.to_json if candidates.empty?
 
-  # --- cross-encoder rerank ---
-  t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-  # by_id = candidates.each_with_object({}) { |p, h| h[p["record_id"]] = p }
-  docs = candidates.map { |c| c["description_clean"][0, 256] }
-
-  reranked = TRACER.in_span("rerank", attributes: { "candidates" => docs.length }) do
-    RERANKER.(q, docs)
-  end
-  timings[:rerank] = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t1) * 1000).round
-
-  # apply description length boost — discount short descriptions
-  reranked.each_with_index do |r, _|
-    desc_len = docs[r[:doc_id]].length
-    if desc_len < DESC_LEN_THRESHOLD
-      r[:score] *= (desc_len.to_f / DESC_LEN_THRESHOLD)
-    end
-  end
-
-  floor = params[:show_worse] == "1" ? 0 : RERANK_FLOOR
-  scored = reranked
-           .select { |r| r[:score] > floor }
-           .sort_by { |r| -r[:score] }
-
-  ordered = scored.map do |r|
-    proj = candidates[r[:doc_id]].dup
-    proj["score"] = r[:score].round(3)
+  # --- order by RRF score, apply description length discount ---
+  ordered = candidates.map do |c|
+    score = scores[c["record_id"]] || 0.0
+    desc_len = (c["description_clean"] || "").length
+    score *= (desc_len.to_f / DESC_LEN_THRESHOLD) if desc_len < DESC_LEN_THRESHOLD
+    proj = c.dup
+    proj["score"] = score.round(4)
     proj
-  end
+  end.sort_by { |p| -p["score"] }
 
   # apply -word exclusions with word boundary matching
   unless exclude_terms.empty?

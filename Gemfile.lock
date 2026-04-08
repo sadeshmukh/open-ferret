@@ -3,10 +3,6 @@ GEM
   specs:
     base64 (0.3.0)
     bigdecimal (4.1.1)
-    ffi (1.17.4-arm64-darwin)
-    ffi (1.17.4-x86_64-darwin)
-    ffi (1.17.4-x86_64-linux-gnu)
-    ffi (1.17.4-x86_64-linux-musl)
     google-protobuf (4.34.1-arm64-darwin)
       bigdecimal
       rake (~> 13.3)
@@ -21,20 +17,11 @@ GEM
       rake (~> 13.3)
     googleapis-common-protos-types (1.22.0)
       google-protobuf (~> 4.26)
-    informers (1.2.1)
-      onnxruntime (>= 0.9)
-      tokenizers (>= 0.5.3)
     logger (1.7.0)
     lru_redux (1.1.0)
     mustermann (3.0.4)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.5)
-    onnxruntime (0.11.1-arm64-darwin)
-      ffi
-    onnxruntime (0.11.1-x86_64-darwin)
-      ffi
-    onnxruntime (0.11.1-x86_64-linux)
-      ffi
     opentelemetry-api (1.9.0)
       logger
     opentelemetry-common (0.24.0)
@@ -93,19 +80,14 @@ GEM
     sqlite3 (2.9.2-x86_64-linux-gnu)
     sqlite3 (2.9.2-x86_64-linux-musl)
     tilt (2.7.0)
-    tokenizers (0.6.3-arm64-darwin)
-    tokenizers (0.6.3-x86_64-darwin)
-    tokenizers (0.6.3-x86_64-linux)
-    tokenizers (0.6.3-x86_64-linux-musl)
-
 PLATFORMS
   arm64-darwin
+  arm64-linux
   x86_64-darwin
   x86_64-linux-gnu
   x86_64-linux-musl
 
 DEPENDENCIES
-  informers
   lru_redux
   opentelemetry-exporter-otlp
   opentelemetry-instrumentation-sinatra

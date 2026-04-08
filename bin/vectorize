@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "informers"
 require_relative "../lib/db"
+require_relative "../lib/embeddings"
 
 if ARGV.include?("--rebuild")
   puts "rebuilding vector + fts indexes..."
@@ -14,7 +14,6 @@ if ARGV.include?("--rebuild")
 end
 
 db = DB.connection
-model = Informers.pipeline("embedding", "sentence-transformers/all-mpnet-base-v2")
 
 BATCH_SIZE = 64
 
@@ -32,7 +31,7 @@ exit 0 if rows.empty?
 
 rows.each_slice(BATCH_SIZE).with_index do |batch, i|
   texts = batch.map { |r| r["description_clean"] }
-  embeddings = model.(texts)
+  embeddings = Embeddings.embed(texts)
 
   db.transaction do
     batch.each_with_index do |row, j|
