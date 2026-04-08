@@ -72,9 +72,10 @@ GEM
       rack-protection (= 4.2.1)
       rack-session (>= 2.0.0, < 3)
       tilt (~> 2.0)
-    sqlite-vec (0.1.9-arm64-darwin)
-    sqlite-vec (0.1.9-x86_64-darwin)
-    sqlite-vec (0.1.9-x86_64-linux)
+    sqlite-vec (0.1.10.alpha.3-arm64-darwin)
+    sqlite-vec (0.1.10.alpha.3-arm64-linux)
+    sqlite-vec (0.1.10.alpha.3-x86_64-darwin)
+    sqlite-vec (0.1.10.alpha.3-x86_64-linux)
     sqlite3 (2.9.2-arm64-darwin)
     sqlite3 (2.9.2-x86_64-darwin)
     sqlite3 (2.9.2-x86_64-linux-gnu)
@@ -95,7 +96,7 @@ DEPENDENCIES
   puma
   rackup
   sinatra
-  sqlite-vec
+  sqlite-vec (>= 0.1.10.alpha.2)
   sqlite3
 
 BUNDLED WITH
