@@ -82,8 +82,8 @@ GEM
     sqlite3 (2.9.2-x86_64-linux-musl)
     tilt (2.7.0)
 PLATFORMS
+  aarch64-linux
   arm64-darwin
-  arm64-linux
   x86_64-darwin
   x86_64-linux-gnu
   x86_64-linux-musl
